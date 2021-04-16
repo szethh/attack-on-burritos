@@ -1,29 +1,21 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
-using UnityEditor;
 
-[RequireComponent(typeof(Rigidbody2D))]
 public class Enemy : MonoBehaviour
 {
     // CONST
-    public float sepDst = 20f;
+    public float sepDst = 0.2f;
+    public float moveSpeed = 1f;
+    public float rotSpeed = 3f;
     
     public int maxHealth = 3;
     public float size;
 
     private List<Player> _players;
     
-    private Rigidbody2D _rb;
     private int _health;
-
-    private void Awake()
-    {
-        _rb = GetComponent<Rigidbody2D>();
-    }
-
+    
     public void Init(int health, List<Player> players)
     {
         maxHealth = health;
@@ -31,20 +23,25 @@ public class Enemy : MonoBehaviour
 
         _players = players;
         
-        transform.localScale = Vector3.one * size;
+        transform.localScale *= size;
     }
 
     // Update is called once per frame
     private void FixedUpdate()
     {
+        var total = Vector3.zero;
         var ply = TargetPlayer();
-        _rb.AddForce(ply);
+        //print(ply);
+        total += ply;
 
         var sep = Separate();
-        _rb.AddForce(sep);
+        total += sep;
+
+        transform.up += total * (rotSpeed * Time.fixedDeltaTime);
+        transform.position += transform.up * (moveSpeed * Time.fixedDeltaTime);
     }
 
-    private Vector2 TargetPlayer()
+    private Vector3 TargetPlayer()
     {
         var ply = Vector2.zero;
         if (_players.Count > 0)
@@ -54,31 +51,55 @@ public class Enemy : MonoBehaviour
                     curMin == null ||
                     (x.transform.position-transform.position).sqrMagnitude <
                     (curMin.transform.position-transform.position).sqrMagnitude ? x : curMin);
-            print("targeting " + closest);
             ply = (closest.transform.position - transform.position).normalized;
         }
 
         return ply;
     }
 
-    private Vector2 Separate()
+    private Vector3 Separate()
     {
+        // var count = Physics2D.OverlapCircleNonAlloc(transform.position, sepDst, others);
         var others = Physics2D.OverlapCircleAll(
-            transform.position, sepDst).Select(x => x.GetComponent<Enemy>()).ToArray();
-
-        var avg = Vector2.zero;
+            transform.position, sepDst)
+            .Select(x => x.GetComponent<Enemy>())
+            .Where(x => x != null && x != this).ToArray();
+        var count = others.Length;
+        
+        var avg = Vector3.zero;
         foreach (var o in others)
         {
-            if (o == this)
-                break;
             var dir = (transform.position - o.transform.position).normalized;
-            avg += (Vector2)dir;
+            avg += dir;
         }
 
-        if (others.Length > 0)
+        if (count > 0)
         {
-            avg /= others.Length;
+            avg /= count;
         }
         return avg;
+    }
+
+    private void OnCollisionEnter2D(Collision2D other)
+    {
+        if (other.gameObject.TryGetComponent<Player>(out var p))
+        {
+            p.Hit(this);
+        } else if (other.gameObject.TryGetComponent<Bullet>(out var b))
+        {
+            b.Hit();
+            Hit(b);
+        }
+    }
+
+    private void Hit(Bullet b)
+    {
+        _health--;
+        if (_health <= 0)
+        {
+            // die
+            print("died");
+            ObjectPooling.Singleton.AddToPool(gameObject);
+        }
     }
 }
