@@ -1,15 +1,16 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System.Security.Cryptography.X509Certificates;
 
 public class EnemyManager : MonoBehaviour
 {
-    public List<Player> players;
-    public Enemy enemyPrefab;
-    
+        public Enemy enemyPrefab;
+    public float spawnSpeed;
     public List<ObjectPooling.Pool> pools = new List<ObjectPooling.Pool>();
 
     private ObjectPooling _pooling;
-    
+    private float _nextSpawn;
+
     private void Start()
     {
         _pooling = ObjectPooling.Singleton;
@@ -21,13 +22,23 @@ public class EnemyManager : MonoBehaviour
 
     private void Update()
     {
+        if (Time.time > _nextSpawn)
+        {
+            _nextSpawn = Time.time + 1f / spawnSpeed;
+            var pos = Random.insideUnitCircle * 5 + Vector2.one * 5;
+            SpawnEnemy(pos);
+        }
         if (Input.GetMouseButtonDown(0))
         {
             Vector2 pos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            
-            var en = _pooling.GetFromPool(enemyPrefab.gameObject).GetComponent<Enemy>();
-            en.transform.position = pos;
-            en.Init(3, players);
+            SpawnEnemy(pos);
         }
+    }
+
+    private void SpawnEnemy(Vector3 pos)
+    {
+        var en = _pooling.GetFromPool(enemyPrefab.gameObject).GetComponent<Enemy>();
+        en.transform.position = pos;
+        en.Init(3, GameManager.Singleton.players);
     }
 }

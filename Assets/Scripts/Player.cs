@@ -1,18 +1,30 @@
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class Player : MonoBehaviour
 {
     public float moveSpeed = 1f;
     public float shootSpeed = 1f;
     public GameObject bulletPrefab;
-    public int maxHealth = 3;
-    private int _health;
 
     public int playerIdx = 0;
+
+    private int _score;
+    public int Score
+    {
+        get => _score;
+        set => _score = Mathf.Max(0, value);
+    }
+
+    public List<float> hits;
+    public int hitsByEnemy;
     
     private KeyCode _shootKey;
-    private float nextShot;
+    private float _nextShot;
     private ObjectPooling _pooling;
+
+    private Vector2 _lastDir;
 
 
     private void Start()
@@ -21,14 +33,12 @@ public class Player : MonoBehaviour
         
         if (playerIdx == 0)
         {
-            _shootKey = KeyCode.Z;
+            _shootKey = KeyCode.C;
         }
         else if (playerIdx == 1)
         {
             _shootKey = KeyCode.M;
         }
-
-        _health = maxHealth;
     }
 
     private void Update()
@@ -38,15 +48,17 @@ public class Player : MonoBehaviour
             Input.GetAxisRaw("Horizontal " + playerIdx),
             Input.GetAxisRaw("Vertical " + playerIdx));
         transform.position += (Vector3)input * (moveSpeed * Time.deltaTime);
-        
+
+        if (input != _lastDir && input != Vector2.zero)
+            _lastDir = input;
+
         // Shooting
-        if (Input.GetKey(_shootKey) && Time.time > nextShot)
+        if (Input.GetKey(_shootKey) && Time.time > _nextShot)
         {
-            nextShot = Time.time + 1f / shootSpeed;
-            print("pew");
+            _nextShot = Time.time + 1f / shootSpeed;
             var b = _pooling.GetFromPool(bulletPrefab).GetComponent<Bullet>();
             b.transform.position = transform.position;
-            b.transform.up = input.normalized;
+            b.transform.up = _lastDir;
             b.sender = this;
             // b.piercing = piercing;
             
@@ -64,9 +76,13 @@ public class Player : MonoBehaviour
         */
     }
 
-    public void Hit(Enemy e)
+    public void HitByEnemy(Enemy e)
     {
-        _health--;
-        // die if 0 left
+        GameManager.Singleton.HitByEnemy(this, e);
+    }
+
+    public void HitEnemy(Enemy e)
+    {
+        GameManager.Singleton.HitEnemy(this, e);
     }
 }

@@ -14,11 +14,12 @@ public class Bullet : MonoBehaviour
             ObjectPooling.Singleton.AddToPool(gameObject);
     }
 
-    public void Hit()
+    public void Hit(Enemy e)
     {
+        sender.HitEnemy(e);
         // maybe add check for piercing bullets
         if (piercing)
             return;
-        ObjectPooling.Singleton.AddToPool(gameObject);
+        gameObject.SetActive(false);
     }
 }

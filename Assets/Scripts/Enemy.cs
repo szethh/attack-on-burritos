@@ -30,7 +30,7 @@ public class Enemy : MonoBehaviour
     private void FixedUpdate()
     {
         var total = Vector3.zero;
-        var ply = TargetPlayer();
+        var ply = Seek();
         //print(ply);
         total += ply;
 
@@ -38,15 +38,18 @@ public class Enemy : MonoBehaviour
         total += sep;
 
         transform.up += total * (rotSpeed * Time.fixedDeltaTime);
+        var oldRot = transform.rotation.eulerAngles;
+        oldRot.x = 0;
+        transform.rotation = Quaternion.Euler(oldRot);
         transform.position += transform.up * (moveSpeed * Time.fixedDeltaTime);
     }
 
-    private Vector3 TargetPlayer()
+    private Vector3 Seek()
     {
         var ply = Vector2.zero;
         if (_players.Count > 0)
         {
-            var closest = _players.Aggregate(
+            var closest = _players.Where(x => x.gameObject.activeInHierarchy).Aggregate(
                 (curMin, x) =>
                     curMin == null ||
                     (x.transform.position-transform.position).sqrMagnitude <
@@ -80,14 +83,15 @@ public class Enemy : MonoBehaviour
         return avg;
     }
 
-    private void OnCollisionEnter2D(Collision2D other)
+    private void OnTriggerEnter2D(Collider2D other)
     {
         if (other.gameObject.TryGetComponent<Player>(out var p))
         {
-            p.Hit(this);
+            p.HitByEnemy(this);
+            Die();
         } else if (other.gameObject.TryGetComponent<Bullet>(out var b))
         {
-            b.Hit();
+            b.Hit(this);
             Hit(b);
         }
     }
@@ -98,8 +102,13 @@ public class Enemy : MonoBehaviour
         if (_health <= 0)
         {
             // die
-            print("died");
-            ObjectPooling.Singleton.AddToPool(gameObject);
+            Die();
         }
+    }
+
+    private void Die()
+    {
+        // particles, sounds, etc
+        gameObject.SetActive(false);
     }
 }

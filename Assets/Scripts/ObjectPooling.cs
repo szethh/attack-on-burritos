@@ -43,6 +43,7 @@ public class ObjectPooling : MonoBehaviour
             return;
         
         obj.SetActive(false);
+        print(obj.name + " should now be inactive");
         _pools[key].PooledObjects.Enqueue(obj);
     }
 
