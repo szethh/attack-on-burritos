@@ -1251,11 +1251,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e64ebb99ea4ae464c8390fe10d8af7b6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mainTitle: {fileID: 2092405305}
+  mainTitle: {fileID: 2092405306}
   telon: {fileID: 88998083}
   buttons:
   - {fileID: 979924930}
   - {fileID: 1780640233}
+  helpButton: {fileID: 964226825}
 --- !u!1 &1487502952
 GameObject:
   m_ObjectHideFlags: 0
