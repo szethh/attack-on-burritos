@@ -99,9 +99,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 2
-  shootSpeed: 6
+  weapon: {fileID: 0}
+  defaultWeapon: {fileID: 11400000, guid: aeb811bb9c6c35b4881d47bbb1d56a14, type: 2}
   bulletPrefab: {fileID: 5346986937123746671, guid: 3b3fdb390d35aab42b9fc7c014e280b1, type: 3}
   playerIdx: 0
+  hits: []
+  hitsByEnemy: 0
 --- !u!70 &4191143413220090456
 CapsuleCollider2D:
   m_ObjectHideFlags: 0
@@ -138,4 +141,4 @@ Rigidbody2D:
   m_Interpolate: 0
   m_SleepingMode: 1
   m_CollisionDetection: 0
-  m_Constraints: 7
+  m_Constraints: 4

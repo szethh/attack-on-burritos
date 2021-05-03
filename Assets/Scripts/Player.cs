@@ -1,11 +1,10 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 public class Player : MonoBehaviour
 {
     public float moveSpeed = 1f;
-    public float shootSpeed = 1f;
+    public WeaponStats weapon, defaultWeapon;
     public GameObject bulletPrefab;
 
     public int playerIdx = 0;
@@ -21,59 +20,54 @@ public class Player : MonoBehaviour
     public int hitsByEnemy;
     
     private KeyCode _shootKey;
+    private KeyCode _strafeKey;
+    
     private float _nextShot;
     private ObjectPooling _pooling;
 
     private Vector2 _lastDir;
+    private Rigidbody2D _rb;
 
 
     private void Start()
     {
         _pooling = ObjectPooling.Singleton;
         
-        if (playerIdx == 0)
-        {
-            _shootKey = KeyCode.C;
-        }
-        else if (playerIdx == 1)
-        {
-            _shootKey = KeyCode.M;
-        }
+        _shootKey = playerIdx == 0 ? KeyCode.C : KeyCode.M;
+        _strafeKey = playerIdx == 0 ? KeyCode.LeftShift : KeyCode.RightShift;
+        
+        _lastDir = transform.up;
+
+        _rb = GetComponent<Rigidbody2D>();
     }
 
-    private void Update()
+    private void FixedUpdate()
     {
         // Movement
         var input = new Vector2(
             Input.GetAxisRaw("Horizontal " + playerIdx),
             Input.GetAxisRaw("Vertical " + playerIdx));
-        transform.position += (Vector3)input * (moveSpeed * Time.deltaTime);
+        _rb.MovePosition((Vector2)transform.position + input * (moveSpeed * Time.fixedDeltaTime));
 
-        if (input != _lastDir && input != Vector2.zero)
+        if (input != _lastDir && input != Vector2.zero && !Input.GetKey(_strafeKey))
             _lastDir = input;
+
+        if (weapon == null)
+            weapon = defaultWeapon;
 
         // Shooting
         if (Input.GetKey(_shootKey) && Time.time > _nextShot)
         {
-            _nextShot = Time.time + 1f / shootSpeed;
-            var b = _pooling.GetFromPool(bulletPrefab).GetComponent<Bullet>();
+            _nextShot = Time.time + 1f / weapon.fireRate;
+            var b = _pooling.GetFromPool(weapon.bulletPrefab).GetComponent<Bullet>();
+            Physics2D.IgnoreCollision(b.GetComponent<Collider2D>(), GetComponent<Collider2D>());
             b.transform.position = transform.position;
-            b.transform.up = _lastDir;
+            var spread = Vector2.one * (Random.Range(weapon.spread.x, weapon.spread.y) * (Random.value * 2 - 1));
+            b.transform.up = _lastDir + spread;
             b.sender = this;
-            // b.piercing = piercing;
-            
+            b.speed = weapon.bulletSpeed;
+            b.piercing = weapon.piercing;
         }
-    }
-
-    private void OnCollisionEnter2D(Collision2D other)
-    {
-        // Power ups
-        /*
-        if (other.gameObject.TryGetComponent<PowerUp>(out var p))
-        {
-            p.Hit(this);
-        }
-        */
     }
 
     public void HitByEnemy(Enemy e)
@@ -84,5 +78,10 @@ public class Player : MonoBehaviour
     public void HitEnemy(Enemy e)
     {
         GameManager.Singleton.HitEnemy(this, e);
+    }
+
+    public void PickUp(Weapon item)  // refactor to PickUp type
+    {
+        weapon = item.stats;
     }
 }

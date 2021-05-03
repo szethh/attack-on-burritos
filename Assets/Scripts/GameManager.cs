@@ -7,19 +7,25 @@ using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
-    public int maxLives = 3;
+    [Header("HUD")]
     public Transform livesParent;
     public GameObject pausePanel;
     public Image progressBar;
     public TMP_Text pointsText;
 
+    [Header("GameOver")]
     public GameObject gameOverPanel;
     public TMP_Text[] deathsTexts, hitsTexts, scoreTexts;
+    public TMP_Text finalScoreText;
 
+    [Header("Game")]
     public List<Player> players;
+    public int maxLives = 3;
     public int points;
     public float levelTime;
-
+    public List<WeaponStats> weaponStatsList;
+    public Transform itemParent;
+    
     private int _lives;
     private float _time;
     private int _nPlayers;
@@ -38,10 +44,14 @@ public class GameManager : MonoBehaviour
             _nPlayers = PlayerPrefs.GetInt("players");  // can only be 1 or 2
         else
             _nPlayers = 1;
+
+        PlayerPrefs.SetInt("players", _nPlayers);  // remember nPlayers for next time
         
         _lives = maxLives;
         if (_nPlayers == 1)
             players[1].gameObject.SetActive(false);
+        
+        Pause(false);
     }
 
     private void Update()
@@ -90,6 +100,8 @@ public class GameManager : MonoBehaviour
             hitsTexts[i].text = players[i].hitsByEnemy + " (-" + 10*players[i].hitsByEnemy + " pts)";
             scoreTexts[i].text = players[i].Score.ToString();
         }
+
+        finalScoreText.text = points.ToString();
     }
 
     public void Retry()
@@ -99,7 +111,7 @@ public class GameManager : MonoBehaviour
 
     public void Quit()
     {
-        Application.Quit();
+        SceneManager.LoadScene(0);
     }
     
     public void HitByEnemy(Player p, Enemy e)
@@ -113,7 +125,7 @@ public class GameManager : MonoBehaviour
 
     public void HitEnemy(Player p, Enemy e)
     {
-        int score = Mathf.RoundToInt(e.maxHealth - e.size*0.7f + e.moveSpeed * e.rotSpeed);
+        int score = e.Level;
         p.hits.Add(score);
         p.Score += score;
     }

@@ -10,7 +10,7 @@ public class Bullet : MonoBehaviour
     void FixedUpdate()
     {
         transform.position += transform.up * (speed * Time.fixedDeltaTime);
-        if (transform.position.x > 50 || transform.position.y > 50)
+        if (Mathf.Abs(transform.position.x) > 50 || Mathf.Abs(transform.position.y) > 50)
             ObjectPooling.Singleton.AddToPool(gameObject);
     }
 

@@ -2,17 +2,19 @@ using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 public class MainMenu : MonoBehaviour
 {
     public TMP_Text mainTitle;
     public Image telon;
-    public Button[] buttons;
+    public Transform[] buttons;
     public Button helpButton;
+    public Toggle skipIntro;
     
     private void Start()
     {
-        Init();
+        //Init();
     }
 
     private void Update()
@@ -38,12 +40,19 @@ public class MainMenu : MonoBehaviour
         // Camera.main.DOShakePosition(0.1f, 0.2f, 3);
         for (int i = 0; i < buttons.Length; i++)
         {
-            mySequence.Join(buttons[i].transform.DOMoveY(
-                    buttons[i].transform.position.y - 600, 1.8f, true).
+            mySequence.Join(buttons[i].DOMoveY(
+                    buttons[i].position.y - 600, 1.8f, true).
                 From().SetDelay(i*0.2f).SetEase(Ease.OutBack, 0.6f));
         }
 
         mySequence.Append(helpButton.transform.DOMoveX(
             helpButton.transform.position.x - 200, 0.9f, true).From().SetEase(Ease.OutQuart).SetDelay(0.3f));
+    }
+
+    public void Play(int nPlayers)
+    {
+        PlayerPrefs.SetInt("players", nPlayers);
+        PlayerPrefs.SetInt("skipIntro", skipIntro.isOn ? 1 : 0);
+        SceneManager.LoadScene(1);
     }
 }

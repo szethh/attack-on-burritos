@@ -1,10 +1,9 @@
 using UnityEngine;
 using System.Collections.Generic;
-using System.Security.Cryptography.X509Certificates;
 
 public class EnemyManager : MonoBehaviour
 {
-        public Enemy enemyPrefab;
+    public Enemy enemyPrefab;
     public float spawnSpeed;
     public List<ObjectPooling.Pool> pools = new List<ObjectPooling.Pool>();
 

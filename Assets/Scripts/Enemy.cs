@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using DG.Tweening;
 
 public class Enemy : MonoBehaviour
 {
@@ -8,20 +9,28 @@ public class Enemy : MonoBehaviour
     public float sepDst = 0.2f;
     public float moveSpeed = 1f;
     public float rotSpeed = 3f;
-    
+    public Weapon weaponPrefab;
+
     public int maxHealth = 3;
     public float size;
+    public int Level => Mathf.RoundToInt(maxHealth - size * 0.7f + moveSpeed * rotSpeed);
 
     private List<Player> _players;
     
     private int _health;
-    
+    private SpriteRenderer _renderer;
+    private ParticleSystem _particleSystem;
+
     public void Init(int health, List<Player> players)
     {
         maxHealth = health;
         _health = maxHealth;
 
         _players = players;
+        _renderer = GetComponent<SpriteRenderer>();
+        _particleSystem = GetComponent<ParticleSystem>();
+        
+        GetComponent<Collider2D>().enabled = true;
         
         transform.localScale *= size;
     }
@@ -98,10 +107,10 @@ public class Enemy : MonoBehaviour
 
     private void Hit(Bullet b)
     {
-        _health--;
+        _renderer.DOColor(Color.red, 0.15f).SetEase(Ease.Flash, 2);
+        _health -= b.sender.weapon.weaponDamage;
         if (_health <= 0)
         {
-            // die
             Die();
         }
     }
@@ -109,6 +118,19 @@ public class Enemy : MonoBehaviour
     private void Die()
     {
         // particles, sounds, etc
-        gameObject.SetActive(false);
+        GetComponent<Collider2D>().enabled = false;
+        _particleSystem.Play();
+        _renderer.DOFade(0f, 0.1f).SetDelay(0.1f).OnComplete(() =>
+        {
+            if (Random.value < 0.1f * Mathf.Log10(Level) || true)
+            {
+                var drop = Instantiate(weaponPrefab);
+                drop.transform.SetParent(GameManager.Singleton.itemParent);
+                drop.transform.position = transform.position;
+                // all weapons have the same chance (for now)
+                drop.stats = GameManager.Singleton.weaponStatsList[Random.Range(0, GameManager.Singleton.weaponStatsList.Count)];
+            }
+            gameObject.SetActive(false);
+        });
     }
 }
