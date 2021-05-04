@@ -3,6 +3,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.AI;
 using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
@@ -25,6 +26,8 @@ public class GameManager : MonoBehaviour
     public float levelTime;
     public List<WeaponStats> weaponStatsList;
     public Transform itemParent;
+
+    public NavMeshSurface2d navMeshSurface;
     
     private int _lives;
     private float _time;
@@ -50,7 +53,9 @@ public class GameManager : MonoBehaviour
         _lives = maxLives;
         if (_nPlayers == 1)
             players[1].gameObject.SetActive(false);
-        
+
+        Physics2D.IgnoreLayerCollision(6, 6);
+
         Pause(false);
     }
 
@@ -59,13 +64,13 @@ public class GameManager : MonoBehaviour
         if (!paused)
         {
             _time += Time.deltaTime;
-            progressBar.fillAmount = _time / levelTime;
+            // progressBar.fillAmount = _time / levelTime;
 
             points = players.Select(x => x.Score).Sum();
             pointsText.text = points + " pts";
         }
         
-        if (_time > levelTime || _lives <= 0)
+        if (_time > levelTime && false || _lives <= 0)
         {
             GameOver();
         }
@@ -128,5 +133,10 @@ public class GameManager : MonoBehaviour
         int score = e.Level;
         p.hits.Add(score);
         p.Score += score;
+    }
+
+    private void Test()
+    {
+        navMeshSurface.BuildNavMesh();
     }
 }

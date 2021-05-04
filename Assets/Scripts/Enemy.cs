@@ -1,7 +1,10 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 using DG.Tweening;
+using UnityEngine.AI;
+using Random = UnityEngine.Random;
 
 public class Enemy : MonoBehaviour
 {
@@ -13,40 +16,47 @@ public class Enemy : MonoBehaviour
 
     public int maxHealth = 3;
     public float size;
-    public int Level => Mathf.RoundToInt(maxHealth - size * 0.7f + moveSpeed * rotSpeed);
+    public int Level => Mathf.RoundToInt(maxHealth - size * 0.7f + moveSpeed * rotSpeed/60f);
 
+    public Transform player;
+    
     private List<Player> _players;
     
     private int _health;
     private SpriteRenderer _renderer;
     private ParticleSystem _particleSystem;
+    private bool _invincible;
+    private NavMeshAgent _agent;
+
+    private void Awake()
+    {
+        _renderer = GetComponent<SpriteRenderer>();
+        _particleSystem = GetComponent<ParticleSystem>();
+        _agent = GetComponent<NavMeshAgent>();
+    }
 
     public void Init(int health, List<Player> players)
     {
+        _players = players;
         maxHealth = health;
         _health = maxHealth;
-
-        _players = players;
-        _renderer = GetComponent<SpriteRenderer>();
-        _particleSystem = GetComponent<ParticleSystem>();
-        
-        GetComponent<Collider2D>().enabled = true;
-        
         transform.localScale *= size;
+        if (_agent == null)
+            _agent = GetComponent<NavMeshAgent>();
+
+        _agent.speed = moveSpeed;
+        _agent.angularSpeed = rotSpeed;
+        _agent.updateUpAxis = false;
+        _agent.updateRotation = false;
     }
 
-    // Update is called once per frame
     private void FixedUpdate()
     {
-        var total = Vector3.zero;
         var ply = Seek();
-        //print(ply);
-        total += ply;
-
-        var sep = Separate();
-        total += sep;
-
-        transform.up += total * (rotSpeed * Time.fixedDeltaTime);
+        _agent.SetDestination(ply);
+        
+        transform.up = (_agent.nextPosition - transform.position).normalized;
+        return;
         var oldRot = transform.rotation.eulerAngles;
         oldRot.x = 0;
         transform.rotation = Quaternion.Euler(oldRot);
@@ -55,7 +65,7 @@ public class Enemy : MonoBehaviour
 
     private Vector3 Seek()
     {
-        var ply = Vector2.zero;
+        var ply = transform.position;
         if (_players.Count > 0)
         {
             var closest = _players.Where(x => x.gameObject.activeInHierarchy).Aggregate(
@@ -63,33 +73,9 @@ public class Enemy : MonoBehaviour
                     curMin == null ||
                     (x.transform.position-transform.position).sqrMagnitude <
                     (curMin.transform.position-transform.position).sqrMagnitude ? x : curMin);
-            ply = (closest.transform.position - transform.position).normalized;
+            return closest.transform.position;
         }
-
         return ply;
-    }
-
-    private Vector3 Separate()
-    {
-        // var count = Physics2D.OverlapCircleNonAlloc(transform.position, sepDst, others);
-        var others = Physics2D.OverlapCircleAll(
-            transform.position, sepDst)
-            .Select(x => x.GetComponent<Enemy>())
-            .Where(x => x != null && x != this).ToArray();
-        var count = others.Length;
-        
-        var avg = Vector3.zero;
-        foreach (var o in others)
-        {
-            var dir = (transform.position - o.transform.position).normalized;
-            avg += dir;
-        }
-
-        if (count > 0)
-        {
-            avg /= count;
-        }
-        return avg;
     }
 
     private void OnTriggerEnter2D(Collider2D other)
@@ -97,8 +83,8 @@ public class Enemy : MonoBehaviour
         if (other.gameObject.TryGetComponent<Player>(out var p))
         {
             p.HitByEnemy(this);
-            Die();
-        } else if (other.gameObject.TryGetComponent<Bullet>(out var b))
+            Die(true);
+        } else if (other.gameObject.TryGetComponent<Bullet>(out var b) && !_invincible)
         {
             b.Hit(this);
             Hit(b);
@@ -107,22 +93,22 @@ public class Enemy : MonoBehaviour
 
     private void Hit(Bullet b)
     {
-        _renderer.DOColor(Color.red, 0.15f).SetEase(Ease.Flash, 2);
-        _health -= b.sender.weapon.weaponDamage;
+        _invincible = true;
+        _renderer.DOColor(Color.red, 0.15f).SetEase(Ease.Flash, 2).OnComplete(() => _invincible = _health <= 0);
+        _health -= b.weapon.weaponDamage;
         if (_health <= 0)
         {
             Die();
         }
     }
 
-    private void Die()
+    private void Die(bool disableDrop = false)
     {
-        // particles, sounds, etc
-        GetComponent<Collider2D>().enabled = false;
+        //GetComponent<Collider2D>().enabled = false;
         _particleSystem.Play();
         _renderer.DOFade(0f, 0.1f).SetDelay(0.1f).OnComplete(() =>
         {
-            if (Random.value < 0.1f * Mathf.Log10(Level) || true)
+            if (Random.value < 0.1f * Mathf.Log10(Level) && !disableDrop || true)
             {
                 var drop = Instantiate(weaponPrefab);
                 drop.transform.SetParent(GameManager.Singleton.itemParent);

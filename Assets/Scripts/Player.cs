@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Net;
 using UnityEngine;
 
 public class Player : MonoBehaviour
@@ -6,6 +7,7 @@ public class Player : MonoBehaviour
     public float moveSpeed = 1f;
     public WeaponStats weapon, defaultWeapon;
     public GameObject bulletPrefab;
+    public SpriteRenderer gunHolder;
 
     public int playerIdx = 0;
 
@@ -55,18 +57,29 @@ public class Player : MonoBehaviour
         if (weapon == null)
             weapon = defaultWeapon;
 
+        gunHolder.transform.right = _lastDir;
+
         // Shooting
         if (Input.GetKey(_shootKey) && Time.time > _nextShot)
         {
             _nextShot = Time.time + 1f / weapon.fireRate;
-            var b = _pooling.GetFromPool(weapon.bulletPrefab).GetComponent<Bullet>();
-            Physics2D.IgnoreCollision(b.GetComponent<Collider2D>(), GetComponent<Collider2D>());
-            b.transform.position = transform.position;
-            var spread = Vector2.one * (Random.Range(weapon.spread.x, weapon.spread.y) * (Random.value * 2 - 1));
-            b.transform.up = _lastDir + spread;
-            b.sender = this;
-            b.speed = weapon.bulletSpeed;
-            b.piercing = weapon.piercing;
+            for (int i = 0; i < weapon.bulletsPerShot; i++)
+            {
+                var b = _pooling.GetFromPool(weapon.bulletPrefab).GetComponent<Bullet>();
+                Physics2D.IgnoreCollision(b.GetComponent<Collider2D>(), GetComponent<Collider2D>());
+
+                //print(gunHolder.transform.InverseTransformPoint(gunHolder.transform.localPosition));
+                // TODO: help
+                b.transform.position = gunHolder.transform.TransformPoint(gunHolder.transform.InverseTransformPoint(gunHolder.transform.position) + weapon.firingPoint);
+                
+                var spread = Vector2.one.Random(weapon.spread.x, weapon.spread.y).RandomFlip();
+                // Si estamos disparando en diagonal no podemos añadir spread en ambos ejes. Dropeamos uno aleatoriamente
+                if (_lastDir.x != 0f && _lastDir.y != 0f)
+                    spread = spread.RandomSide();
+
+                b.transform.up = _lastDir + spread;
+                b.Init(this, weapon);
+            }
         }
     }
 
@@ -83,5 +96,6 @@ public class Player : MonoBehaviour
     public void PickUp(Weapon item)  // refactor to PickUp type
     {
         weapon = item.stats;
+        gunHolder.sprite = weapon.sprite;
     }
 }
