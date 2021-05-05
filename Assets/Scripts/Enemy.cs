@@ -9,16 +9,14 @@ using Random = UnityEngine.Random;
 public class Enemy : MonoBehaviour
 {
     // CONST
-    public float sepDst = 0.2f;
     public float moveSpeed = 1f;
     public float rotSpeed = 3f;
+    public Transform model;
     public Weapon weaponPrefab;
 
     public int maxHealth = 3;
     public float size;
     public int Level => Mathf.RoundToInt(maxHealth - size * 0.7f + moveSpeed * rotSpeed/60f);
-
-    public Transform player;
     
     private List<Player> _players;
     
@@ -30,7 +28,7 @@ public class Enemy : MonoBehaviour
 
     private void Awake()
     {
-        _renderer = GetComponent<SpriteRenderer>();
+        _renderer = model.GetComponent<SpriteRenderer>();
         _particleSystem = GetComponent<ParticleSystem>();
         _agent = GetComponent<NavMeshAgent>();
     }
@@ -45,22 +43,28 @@ public class Enemy : MonoBehaviour
             _agent = GetComponent<NavMeshAgent>();
 
         _agent.speed = moveSpeed;
-        _agent.angularSpeed = rotSpeed;
         _agent.updateUpAxis = false;
         _agent.updateRotation = false;
+        _agent.angularSpeed = 0f;
     }
 
     private void FixedUpdate()
     {
         var ply = Seek();
         _agent.SetDestination(ply);
-        
-        transform.up = (_agent.nextPosition - transform.position).normalized;
-        return;
-        var oldRot = transform.rotation.eulerAngles;
-        oldRot.x = 0;
-        transform.rotation = Quaternion.Euler(oldRot);
-        transform.position += transform.up * (moveSpeed * Time.fixedDeltaTime);
+
+        try
+        {
+            model.up = (_agent.path.corners[1] - transform.position).normalized;
+            var oldRot = model.rotation.eulerAngles;
+            oldRot.x = 0;
+            oldRot.y = 0;
+            model.rotation = Quaternion.Euler(oldRot);
+        }
+        catch
+        {
+            // ignored
+        }
     }
 
     private Vector3 Seek()

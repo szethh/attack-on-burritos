@@ -13,6 +13,7 @@ public class GameManager : MonoBehaviour
     public GameObject pausePanel;
     public Image progressBar;
     public TMP_Text pointsText;
+    public TMP_Text ammoText1, ammoText2;
 
     [Header("GameOver")]
     public GameObject gameOverPanel;
@@ -61,16 +62,21 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
+        var gameProgress = EnemyManager.Singleton.count / 1000;
         if (!paused)
         {
             _time += Time.deltaTime;
             // progressBar.fillAmount = _time / levelTime;
+            progressBar.fillAmount = gameProgress;
+            ammoText1.text = players[0].bullets < 0 ? "∞" : players[0].bullets.ToString();
+            if (_nPlayers == 1)
+                ammoText2.text = players[1].bullets < 0 ? "∞" : players[1].bullets.ToString();
 
             points = players.Select(x => x.Score).Sum();
             pointsText.text = points + " pts";
         }
         
-        if (_time > levelTime && false || _lives <= 0)
+        if (_time > levelTime && false || _lives <= 0 || gameProgress >= 1f)
         {
             GameOver();
         }

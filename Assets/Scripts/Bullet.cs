@@ -37,15 +37,19 @@ public class Bullet : MonoBehaviour
         //transform.position += transform.up * (weapon.bulletSpeed * Time.fixedDeltaTime);
         _rb.MovePosition(transform.position + transform.up * (weapon.bulletSpeed * Time.fixedDeltaTime));
 
-        if ((transform.position - _initialPos).sqrMagnitude > weapon.range*weapon.range || Time.time > _initialTime+5)
-            gameObject.SetActive(false);
+        if ((transform.position - _initialPos).sqrMagnitude > weapon.range*weapon.range || Time.time > _initialTime+3)
+            Die();
     }
 
     private void OnCollisionEnter2D(Collision2D other)
     {
         if (other.gameObject.CompareTag("wall"))
         {
-            Die();
+            Die(other.GetContact(0).normal);
+        }
+        if (other.gameObject.CompareTag("Player"))
+        {
+            Die(other.GetContact(0).normal);
         }
     }
 
@@ -54,13 +58,14 @@ public class Bullet : MonoBehaviour
         _sender.HitEnemy(e);
         if (weapon.piercing)
             return;
-        Die();
+        Die(transform.position - e.transform.position);
     }
 
-    private void Die()
+    private void Die(Vector3 normal = new Vector3())
     {
         _col.enabled = false;
         _particleSystem.Play();
+        transform.up = normal;
         _renderer.color = Color.clear;
         _renderer.DOFade(0f, 0.2f).OnComplete(() => { gameObject.SetActive(false); });
     }
