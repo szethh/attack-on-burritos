@@ -1,6 +1,6 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
+using DG.Tweening;
 
 public class Player : MonoBehaviour
 {
@@ -20,7 +20,7 @@ public class Player : MonoBehaviour
     }
     public int bullets;
 
-    public List<float> hits;
+    public List<int> hits;
     public int hitsByEnemy;
     
     private KeyCode _shootKey;
@@ -32,6 +32,8 @@ public class Player : MonoBehaviour
     private Vector2 _lastDir;
     private Rigidbody2D _rb;
     private const int _laserLayer = ~(1 << 8 | 1 << 2 | 1 << 6);
+    private SpriteRenderer _renderer;
+    private bool _invincible;
 
     private void Start()
     {
@@ -43,6 +45,7 @@ public class Player : MonoBehaviour
         _lastDir = transform.up;
 
         _rb = GetComponent<Rigidbody2D>();
+        _renderer = GetComponent<SpriteRenderer>();
     }
 
     private void FixedUpdate()
@@ -105,9 +108,14 @@ public class Player : MonoBehaviour
         Gizmos.DrawSphere(firingPoint.position, 0.1f);
     }
 
-    public void HitByEnemy(Enemy e)
+    public bool HitByEnemy(Enemy e)
     {
+        if (_invincible)
+            return false;
+        _invincible = true;
         GameManager.Singleton.HitByEnemy(this, e);
+        _renderer.DOColor(Color.red, 0.45f).SetEase(Ease.Flash, 6).OnComplete(() => _invincible = false);
+        return true;
     }
 
     public void HitEnemy(Enemy e)

@@ -7,7 +7,7 @@ public class EnemyManager : MonoBehaviour
     public static EnemyManager Singleton;
     
     public Enemy enemyPrefab;
-    public float SpawnSpeed => Mathf.RoundToInt(Mathf.Log10(spawnBaseSpeed + count)+Mathf.Sqrt(count)/spawnBaseSpeed);
+    public float SpawnSpeed => Mathf.RoundToInt(3*spawnBaseSpeed - 86*spawnBaseSpeed/(count+6*spawnBaseSpeed));
     public float spawnBaseSpeed;
     public List<ObjectPooling.Pool> pools = new List<ObjectPooling.Pool>();
 
@@ -36,6 +36,7 @@ public class EnemyManager : MonoBehaviour
         if (Time.time > _nextSpawn)
         {
             _nextSpawn = Time.time + spawnBaseSpeed / SpawnSpeed;
+            count++;
             var pos = Random.insideUnitCircle.normalized * Random.Range(minRadius, maxRadius);
             SpawnEnemy(pos);
         }

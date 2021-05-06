@@ -86,8 +86,8 @@ public class Enemy : MonoBehaviour
     {
         if (other.gameObject.TryGetComponent<Player>(out var p))
         {
-            p.HitByEnemy(this);
-            Die(true);
+            if (p.HitByEnemy(this))
+                Die(true);
         } else if (other.gameObject.TryGetComponent<Bullet>(out var b) && !_invincible)
         {
             b.Hit(this);

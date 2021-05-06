@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using UnityEngine.AI;
 using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
@@ -27,8 +27,6 @@ public class GameManager : MonoBehaviour
     public float levelTime;
     public List<WeaponStats> weaponStatsList;
     public Transform itemParent;
-
-    public NavMeshSurface2d navMeshSurface;
     
     private int _lives;
     private float _time;
@@ -44,10 +42,7 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        if (PlayerPrefs.HasKey("players"))
-            _nPlayers = PlayerPrefs.GetInt("players");  // can only be 1 or 2
-        else
-            _nPlayers = 1;
+        _nPlayers = PlayerPrefs.HasKey("players") ? PlayerPrefs.GetInt("players") : 1;
 
         PlayerPrefs.SetInt("players", _nPlayers);  // remember nPlayers for next time
         
@@ -62,7 +57,7 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
-        var gameProgress = EnemyManager.Singleton.count / 1000;
+        var gameProgress = EnemyManager.Singleton.count / 100;
         if (!paused)
         {
             _time += Time.deltaTime;
@@ -70,19 +65,27 @@ public class GameManager : MonoBehaviour
             progressBar.fillAmount = gameProgress;
             ammoText1.text = players[0].bullets < 0 ? "∞" : players[0].bullets.ToString();
             if (_nPlayers == 1)
+                ammoText2.gameObject.SetActive(false);
+            else
                 ammoText2.text = players[1].bullets < 0 ? "∞" : players[1].bullets.ToString();
 
             points = players.Select(x => x.Score).Sum();
             pointsText.text = points + " pts";
         }
         
-        if (_time > levelTime && false || _lives <= 0 || gameProgress >= 1f)
+        if (!paused && (_time > levelTime && false || _lives <= 0 || gameProgress >= 1f))
         {
             GameOver();
         }
         if (Input.GetKeyDown(KeyCode.Escape))
         {
             Pause(!paused);
+        }
+        
+        // DEBUG:
+        if (Input.GetKeyDown(KeyCode.B))
+        {
+            GameOver();
         }
     }
 
@@ -99,20 +102,68 @@ public class GameManager : MonoBehaviour
     {
         Pause(true, false);
         gameOverPanel.SetActive(true);
+        
+        Sequence gameOverSequence = DOTween.Sequence();
+
         for (int i = 0; i < players.Count; i++)
         {
+            deathsTexts[i].text = hitsTexts[i].text = scoreTexts[i].text = "";
             if (i == _nPlayers)
             {
                 deathsTexts[i].text = hitsTexts[i].text = scoreTexts[i].text = "-";
                 continue;
             }
-
-            deathsTexts[i].text = players[i].hits.Count + " (+" + players[i].hits.Sum() + " pts)";
-            hitsTexts[i].text = players[i].hitsByEnemy + " (-" + 10*players[i].hitsByEnemy + " pts)";
-            scoreTexts[i].text = players[i].Score.ToString();
+            
+            gameOverSequence.Append(AcumulateText(
+                deathsTexts[i], 1.5f,
+                new[] {players[i].hits.Count, players[i].hits.Sum()}, "{0} (+{1} pts)"));
+            gameOverSequence.Append(AcumulateText(
+                hitsTexts[i], 1.5f, 
+                new[] {players[i].hitsByEnemy, 10*players[i].hitsByEnemy}, "{0} (-{1} pts)"));
+            gameOverSequence.Append(AcumulateText(
+                scoreTexts[i], 1.5f, new[] {players[i].Score}, "{0}"));
         }
 
-        finalScoreText.text = points.ToString();
+        gameOverSequence.Append(finalScoreText.DOFade(0f, 0.5f).From());
+        gameOverSequence.Join(finalScoreText.transform.DOMoveY(
+            finalScoreText.transform.position.y - 800, 0.5f, true).From());
+        gameOverSequence.Append(AcumulateText(finalScoreText, 2f, new[] {points}, "{0}"));
+        gameOverSequence.Join(finalScoreText.transform.DOScale(Vector3.one * 1.5f, 2f)).SetEase(Ease.OutBack).OnComplete(() =>
+        {
+            CoolRotate(finalScoreText.transform, Vector3.forward * 12f, 1.6f);
+        });
+        
+        gameOverSequence.SetUpdate(true);
+    }
+
+    private Tween AcumulateText(TMP_Text text, float totalDuration, int[] values, string str)
+    {
+        var max = Mathf.Max(1, values.Max());
+        var counts = new int[values.Length];
+        var iter = 0;
+        var dummy = 0; // this is garbage
+        return DOTween.To(() => dummy, x => dummy = x, 100, totalDuration/max).SetLoops(max).SetUpdate(true).OnStepComplete(() =>
+        {
+            for (var i = 0; i < counts.Length; i++)
+            {
+                var d = (values[i] * iter) / (1f * max);
+                if (counts[i] < values[i] && d % 1 == 0)
+                {
+                    counts[i]++;
+                }
+            }
+            text.text = string.Format(str, counts.Select(x => x.ToString()).ToArray());
+            iter++;
+        });
+    }
+
+    private Tween CoolRotate(Transform t, Vector3 desiredAngle, float duration)
+    {
+        return t.DORotate(desiredAngle, duration/2f).SetUpdate(true).OnComplete(() =>
+        {
+            t.DORotate(-desiredAngle, duration).
+                SetEase(Ease.InOutQuad).SetUpdate(true).SetLoops(-1, LoopType.Yoyo);
+        });
     }
 
     public void Retry()
@@ -129,7 +180,6 @@ public class GameManager : MonoBehaviour
     {
         _lives--;
         livesParent.GetChild(_lives).gameObject.SetActive(false);
-        print("player " + p.playerIdx + " was hit by " + e.name);
         p.hitsByEnemy++;
         p.Score -= 10;
     }
@@ -139,10 +189,5 @@ public class GameManager : MonoBehaviour
         int score = e.Level;
         p.hits.Add(score);
         p.Score += score;
-    }
-
-    private void Test()
-    {
-        navMeshSurface.BuildNavMesh();
     }
 }
