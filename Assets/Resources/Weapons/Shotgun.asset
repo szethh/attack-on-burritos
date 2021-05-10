@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 416e8c65b5f8443f93ea62b06c2d1e72, type: 3}
+  m_Name: Shotgun
+  m_EditorClassIdentifier: 
+  name: Escopeta
+  sprite: {fileID: 21300000, guid: f9bbc9cd64ea3f840ad26f2498165e4b, type: 3}
+  fireRate: 1
+  weaponDamage: 3
+  spread: {x: 0.1, y: 0.35}
+  bulletPrefab: {fileID: 5346986937123746671, guid: 3b3fdb390d35aab42b9fc7c014e280b1, type: 3}
+  bulletSpeed: 6
+  bulletsPerShot: 10
+  bulletTint: {r: 1, g: 1, b: 1, a: 1}
+  shootingClips:
+  - {fileID: 8300000, guid: ab5f026905e63974f92a477ad09ac7bc, type: 3}
+  piercing: 0
+  range: 20
+  firingPoint: {x: 2.36, y: 0.25, z: 0}
+  ammo: 8
+  laser: {r: 0, g: 0, b: 0, a: 0}

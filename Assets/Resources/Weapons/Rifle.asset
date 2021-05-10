@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 416e8c65b5f8443f93ea62b06c2d1e72, type: 3}
+  m_Name: Rifle
+  m_EditorClassIdentifier: 
+  name: AK
+  sprite: {fileID: 21300000, guid: b8f719a91efeb834eb34394d7131f2a2, type: 3}
+  fireRate: 6
+  weaponDamage: 3
+  spread: {x: 0.1, y: 0.3}
+  bulletPrefab: {fileID: 5346986937123746671, guid: 3b3fdb390d35aab42b9fc7c014e280b1, type: 3}
+  bulletSpeed: 5
+  bulletsPerShot: 1
+  bulletTint: {r: 1, g: 1, b: 1, a: 1}
+  shootingClips:
+  - {fileID: 8300000, guid: d5080f219c04d1447b915150453b992e, type: 3}
+  piercing: 0
+  range: 20
+  firingPoint: {x: 3.5, y: 0.25, z: 0}
+  ammo: 30
+  laser: {r: 0, g: 0, b: 0, a: 0}
