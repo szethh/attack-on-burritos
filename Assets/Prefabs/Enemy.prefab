@@ -48,7 +48,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76abec908c090495e9549d2b5e37d298, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 1
+  moveSpeed: 0.65
   rotSpeed: 120
   model: {fileID: 6311047698690707138}
   weaponPrefab: {fileID: -590888663009411633, guid: 19ad0f407d30d4842aa6c828e343d448, type: 3}

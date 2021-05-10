@@ -51,13 +51,15 @@ public class GameManager : MonoBehaviour
             players[1].gameObject.SetActive(false);
 
         Physics2D.IgnoreLayerCollision(6, 6);
+        Physics2D.IgnoreLayerCollision(6, 9);
+
 
         Pause(false);
     }
 
     private void Update()
     {
-        var gameProgress = EnemyManager.Singleton.count / 100;
+        var gameProgress = EnemyManager.Singleton.count / 150;
         if (!paused)
         {
             _time += Time.deltaTime;
@@ -82,13 +84,18 @@ public class GameManager : MonoBehaviour
             Pause(!paused);
         }
         
-        // DEBUG:
-        if (Input.GetKeyDown(KeyCode.B))
-        {
-            GameOver();
-        }
+        // // DEBUG:
+        // if (Input.GetKeyDown(KeyCode.B))
+        // {
+        //     GameOver();
+        // }
     }
 
+    public void Pause(bool value)
+    {
+        Pause(value, true);
+    }
+    
     public void Pause(bool value, bool showPanel=true)
     {
         paused = value;
@@ -113,7 +120,6 @@ public class GameManager : MonoBehaviour
                 deathsTexts[i].text = hitsTexts[i].text = scoreTexts[i].text = "-";
                 continue;
             }
-            
             gameOverSequence.Append(AcumulateText(
                 deathsTexts[i], 1.5f,
                 new[] {players[i].hits.Count, players[i].hits.Sum()}, "{0} (+{1} pts)"));
@@ -124,15 +130,15 @@ public class GameManager : MonoBehaviour
                 scoreTexts[i], 1.5f, new[] {players[i].Score}, "{0}"));
         }
 
+        finalScoreText.text = "";
         gameOverSequence.Append(finalScoreText.DOFade(0f, 0.5f).From());
         gameOverSequence.Join(finalScoreText.transform.DOMoveY(
             finalScoreText.transform.position.y - 800, 0.5f, true).From());
-        gameOverSequence.Append(AcumulateText(finalScoreText, 2f, new[] {points}, "{0}"));
-        gameOverSequence.Join(finalScoreText.transform.DOScale(Vector3.one * 1.5f, 2f)).SetEase(Ease.OutBack).OnComplete(() =>
-        {
-            CoolRotate(finalScoreText.transform, Vector3.forward * 12f, 1.6f);
-        });
-        
+        var dur = points / 100f;
+        gameOverSequence.Append(AcumulateText(finalScoreText, dur, new[] {points}, "{0}"));
+        gameOverSequence.Join(finalScoreText.transform.DOScale(Vector3.one * 1.5f, dur)); //.SetEase(Ease.OutBack);
+        gameOverSequence.Append(CoolRotate(finalScoreText.transform, Vector3.forward * 12f, 1.6f).SetDelay(0.3f));
+
         gameOverSequence.SetUpdate(true);
     }
 
@@ -147,7 +153,7 @@ public class GameManager : MonoBehaviour
             for (var i = 0; i < counts.Length; i++)
             {
                 var d = (values[i] * iter) / (1f * max);
-                if (counts[i] < values[i] && d % 1 == 0)
+                if (counts[i] < values[i])// && d % 1 == 0)
                 {
                     counts[i]++;
                 }
@@ -178,10 +184,10 @@ public class GameManager : MonoBehaviour
     
     public void HitByEnemy(Player p, Enemy e)
     {
-        _lives--;
         livesParent.GetChild(_lives).gameObject.SetActive(false);
         p.hitsByEnemy++;
         p.Score -= 10;
+        _lives--;
     }
 
     public void HitEnemy(Player p, Enemy e)

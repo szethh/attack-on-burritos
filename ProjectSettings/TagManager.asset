@@ -15,7 +15,7 @@ TagManager:
   - Bullet
   - Enemy
   - Player
-  - 
+  - pond
   - 
   - 
   - 
@@ -39,6 +39,9 @@ TagManager:
   - 
   - 
   m_SortingLayers:
+  - name: tilemap
+    uniqueID: 75836477
+    locked: 0
   - name: Default
     uniqueID: 0
     locked: 0

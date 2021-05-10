@@ -10,13 +10,12 @@ public class Enemy : MonoBehaviour
 {
     // CONST
     public float moveSpeed = 1f;
-    public float rotSpeed = 3f;
     public Transform model;
     public Weapon weaponPrefab;
 
     public int maxHealth = 3;
     public float size;
-    public int Level => Mathf.RoundToInt(maxHealth - size * 0.7f + moveSpeed * rotSpeed/60f);
+    public int Level => Mathf.RoundToInt(maxHealth - size * 0.7f + moveSpeed);
     
     private List<Player> _players;
     
@@ -33,11 +32,14 @@ public class Enemy : MonoBehaviour
         _agent = GetComponent<NavMeshAgent>();
     }
 
-    public void Init(int health, List<Player> players)
+    public void Init(int health, float moveSpeed, float size, List<Player> players)
     {
         _players = players;
         maxHealth = health;
         _health = maxHealth;
+        this.size = size;
+        this.moveSpeed = moveSpeed;
+        
         transform.localScale *= size;
         if (_agent == null)
             _agent = GetComponent<NavMeshAgent>();
@@ -110,9 +112,9 @@ public class Enemy : MonoBehaviour
     {
         //GetComponent<Collider2D>().enabled = false;
         _particleSystem.Play();
-        _renderer.DOFade(0f, 0.1f).SetDelay(0.1f).OnComplete(() =>
+        _renderer.DOFade(0f, .1f).SetDelay(.1f).OnComplete(() =>
         {
-            if (Random.value < 0.1f * Mathf.Log10(Level) && !disableDrop || true)
+            if (Random.value < Mathf.Log10(Level) + .3f && !disableDrop)
             {
                 var drop = Instantiate(weaponPrefab);
                 drop.transform.SetParent(GameManager.Singleton.itemParent);

@@ -29,7 +29,7 @@ public class Bullet : MonoBehaviour
         _initialPos = transform.position;
         _initialTime = Time.time;
         _col.enabled = true;
-        _renderer.color = Color.white;
+        _renderer.color = weapon.bulletTint;
     }
 
     private void FixedUpdate()
