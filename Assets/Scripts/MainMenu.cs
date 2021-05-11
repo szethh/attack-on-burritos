@@ -32,7 +32,7 @@ public class MainMenu : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.B))
         {
-            Init();
+            //Init();
         }
     }
 
