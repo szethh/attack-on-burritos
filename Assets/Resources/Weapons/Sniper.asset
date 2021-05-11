@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   name: Sniper
   sprite: {fileID: 21300000, guid: a70625ed63e94dd4fbb4782d65f27d45, type: 3}
-  fireRate: 0.75
+  fireRate: 0.9
   weaponDamage: 5
   spread: {x: 0, y: 0}
   bulletPrefab: {fileID: 5346986937123746671, guid: 3b3fdb390d35aab42b9fc7c014e280b1, type: 3}

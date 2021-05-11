@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 376146839352342155}
   - component: {fileID: 4447095487148460613}
   - component: {fileID: 4202713296416543913}
+  - component: {fileID: 8391384248815039191}
   m_Layer: 7
   m_Name: Enemy
   m_TagString: Untagged
@@ -49,7 +50,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 0.65
-  rotSpeed: 120
   model: {fileID: 6311047698690707138}
   weaponPrefab: {fileID: -590888663009411633, guid: 19ad0f407d30d4842aa6c828e343d448, type: 3}
   maxHealth: 3
@@ -4876,6 +4876,25 @@ ParticleSystemRenderer:
   m_Mesh2: {fileID: 0}
   m_Mesh3: {fileID: 0}
   m_MaskInteraction: 0
+--- !u!95 &8391384248815039191
+Animator:
+  serializedVersion: 3
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8057226286333051227}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 8d5df10e5439a0b4196516245262def3, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorControllerStateOnDisable: 0
 --- !u!1 &8153851288257875266
 GameObject:
   m_ObjectHideFlags: 0
@@ -4901,8 +4920,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8153851288257875266}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: -0.23, y: 0, z: 0}
+  m_LocalScale: {x: 6, y: 6, z: 1}
   m_Children: []
   m_Father: {fileID: 3996704720376925798}
   m_RootOrder: 0
@@ -4948,8 +4967,8 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 2
-  m_Sprite: {fileID: 21300000, guid: dd276c17d18d21943b2939ee25d91101, type: 3}
-  m_Color: {r: 0.16470575, g: 1, b: 0, a: 1}
+  m_Sprite: {fileID: 6401050833371259876, guid: 9effc850a706dac4589446e5f4a13096, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0

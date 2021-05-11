@@ -15,11 +15,14 @@ public class MainMenu : MonoBehaviour
     public string[] links;
 
     public Image pj1, pj2, bird;
-    public Sprite pj1Angry, pj2Angry, birdAngry;
+    public Sprite pj1Angry, pj2Angry;
+    private AudioSource _audio;
+    [SerializeField] private AudioClip birdClip;
 
     private IEnumerator Start()
     {
         Time.timeScale = 1f;
+        _audio = GetComponent<AudioSource>();
         telon.gameObject.SetActive(true);
         yield return new WaitForSeconds(1);
         Init();
@@ -29,7 +32,7 @@ public class MainMenu : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.B))
         {
-            //Init();
+            Init();
         }
     }
 
@@ -45,17 +48,22 @@ public class MainMenu : MonoBehaviour
         telon.DOFade(1f, 0f).Complete();
         mySequence.Append(telon.DOFade(0f, 1f));
         
-        mySequence.Append(pj1.transform.DOMoveX(
-            pj1.transform.position.x - 800, 1.35f, true).From().SetEase(Ease.OutQuart).SetDelay(0.3f));
-        mySequence.Join(pj2.transform.DOMoveX(
-            pj2.transform.position.x - 800, 1.35f, true).From().SetEase(Ease.OutQuart).SetDelay(0.3f));
-        mySequence.Join(bird.transform.DOMoveX(
-            bird.transform.position.x + 800, 1.35f, true).From().SetEase(Ease.OutQuart).SetDelay(0.3f).OnComplete(() =>
+        mySequence.Append(bird.transform.DOMoveX(
+            bird.transform.position.x + 850, 1.43f, true).From().SetEase(Ease.OutQuart).SetDelay(0.3f).OnComplete(() =>
         {
             pj1.sprite = pj1Angry;
             pj2.sprite = pj2Angry;
-            bird.sprite = birdAngry;
+            var anim = bird.GetComponent<Animator>();
+            anim.SetTrigger("shout");
+            anim.speed = 1.5f;
+            _audio.clip = birdClip;
+            _audio.Play();
         }));
+        mySequence.Join(pj1.transform.DOMoveX(
+            pj1.transform.position.x - 800, 1.35f, true).From().SetEase(Ease.OutQuart).SetDelay(0.3f));
+        mySequence.Join(pj2.transform.DOMoveX(
+            pj2.transform.position.x - 800, 1.35f, true).From().SetEase(Ease.OutQuart).SetDelay(0.3f));
+        
         
         // mySequence.AppendInterval(0.4f);
         mySequence.Append(mainTitle.DOFade(0f, 0.6f).From().SetEase(Ease.InOutQuint));
@@ -72,9 +80,6 @@ public class MainMenu : MonoBehaviour
                     buttons[i].position.y - 1000, 2f, true).
                 From().SetDelay(i*0.02f).SetEase(Ease.OutBack, 0.6f));
         }
-
-        
-        
     }
 
     public void Play(int nPlayers)
